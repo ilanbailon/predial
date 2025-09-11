@@ -247,7 +247,7 @@
 
   // ====== Overrides ======
   const OVERRIDE_TABLE = "avance_override";
-  const EDITABLE_TYPES = { plan: false, done: false };
+  const EDITABLE_TYPES = { plan: true, done: false };
   let editMode = false;
   let overridesMap = new Map(); // `${resp}|${fecha}|${tipo}` -> int
 
@@ -896,3 +896,4 @@ function renderKpis(planCounts, doneCounts, days){
 </script>
 </body>
 </html>
+
