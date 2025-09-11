@@ -5,14 +5,16 @@
 <title>Reporte Predios — Planificado vs Elaborado</title>
 <style>
   body{font-family: system-ui, Arial, sans-serif; margin:16px;}
+  h1{margin:0 0 10px;}
   .bar{display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-bottom:12px;}
   .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
   input[type="date"]{padding:6px; border:1px solid #ccc; border-radius:6px;}
   button{padding:8px 12px; border:0; background:#0ea5e9; color:#fff; border-radius:8px; cursor:pointer}
+
   table{border-collapse:collapse; width:100%;}
   th, td{border:1px solid #ddd; padding:6px 8px; text-align:center; vertical-align:top;}
   .wday{font-size:12px; color:#555;}
-  .sun{background:#ffd6d6;}
+  .sun{background:#ffdfe0;}
   .sat{background:#e6f8e6;}
   .clickable{cursor:pointer; font-weight:700;}
   .zero{color:#bbb; font-weight:400;}
@@ -20,7 +22,7 @@
   .totalrow{background:#eef6ff; font-weight:700;}
   .subrow{background:#f9fafb; color:#555; font-weight:600; text-align:left;}
 
-  /* --- dos columnas pegajosas (RESPONSABLE + TIPO) --- */
+  /* sticky primeras dos columnas */
   th.sticky{position:sticky; z-index:3; background:#f6f6f6;}
   td.sticky{position:sticky; z-index:2; background:#fff;}
   th.sticky.l1, td.sticky.l1 { left:0;    min-width:180px; }
@@ -33,7 +35,7 @@
   .chip input{transform:scale(1.1)}
   .chip.active{background:#eef7ff; border-color:#bfdbfe}
 
-  /* Colores para agenda (si no especificas color en BD) */
+  /* Marcas de agenda */
   .mark { box-shadow: inset 0 0 0 9999px rgba(255, 240, 168, .7); }
   .mark.vacaciones { box-shadow: inset 0 0 0 9999px rgba(255, 227, 136, .85);}
   .mark.interferencias { box-shadow: inset 0 0 0 9999px rgba(255, 245, 157, .9);}
@@ -42,16 +44,17 @@
   #chartWrap{margin-top:18px; border:1px solid #eee; border-radius:10px; padding:14px;}
   #sCurve{width:100%; height:360px;}
 
-  /* inputs override (edición manual) */
+  /* inputs override */
   .ovr-input{width:70px; padding:4px 6px; border:1px solid #cbd5e1; border-radius:8px; text-align:center;}
 
-  /* Contenido interno de la celda: número/input + motivo siempre visible */
+  /* Contenido interno de la celda */
   .cell{ display:flex; flex-direction:column; align-items:center; gap:2px; }
   .motivo{
     font-size:10px; line-height:1.1; color:#334155;
     max-width:90px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  /* Modal por encima de todo y sin solaparse con sticky */
+
+  /* Modal */
   .modal-back{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45);
               align-items:center; justify-content:center; z-index:2000;}
   .modal{background:#fff; border-radius:12px; max-width:820px; width:95%;
@@ -62,14 +65,14 @@
   .list th,.list td{border:1px solid #e5e7eb; padding:6px 8px; text-align:left;}
   .no-scroll{overflow:hidden;}
 
-  /* --- Hoy: verde suave con aro sutil --- */
+  /* Hoy: lila suave con aro */
   :root{
-  --today-bg: #f5f3ff;                 /* lila muy claro */
-  --today-ring: rgba(99,102,241,.30);  /* índigo */
-  --today-wash: rgba(99,102,241,.16);  /* velo */
+    --today-bg: #f5f3ff;
+    --today-ring: rgba(99,102,241,.30);
+    --today-wash: rgba(99,102,241,.16);
   }
   th.today, td.today{
-    background: var(--today-bg) !important; /* sobrepone sat/sun */
+    background: var(--today-bg) !important;
     position: relative;
     box-shadow: inset 0 0 0 9999px var(--today-wash);
   }
@@ -80,6 +83,35 @@
     border-radius:6px;
     pointer-events:none;
   }
+
+  /* ===== KPIs ===== */
+  #kpis{display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin:10px 0 14px}
+  .kpi{background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px}
+  .kpi h4{margin:0 0 6px; font-size:13px; color:#475569; font-weight:600}
+  .kpi .val{font-size:22px; font-weight:800}
+  .kpi small{color:#64748b}
+  .leaders{display:flex; flex-direction:column; gap:6px}
+  .leader{display:flex; justify-content:space-between; gap:8px; font-size:13px}
+  .badge{display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid #e2e8f0; background:#f8fafc; font-size:12px}
+
+  /* ===== Resumen semanal ===== */
+  #weeklyWrap{margin-top:16px; border:1px solid #eee; border-radius:10px; padding:12px;}
+  #weeklyWrap h3{margin:0 0 8px; font-size:16px;}
+  #weeklyTbl th{background:#f1f5f9; font-weight:700}
+
+  /* Tarjeta contenedora de KPIs agrupados */
+  .kpi-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px}
+  .kpi-card h4{margin:0 0 8px;font-size:14px;color:#475569;font-weight:700}
+
+  /* Rejilla interna de los 3 indicadores */
+  .kpi-card .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .metric{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px}
+  .metric .m-label{font-size:12px;color:#64748b;font-weight:600;margin-bottom:4px}
+  .metric .m-val{font-size:22px;font-weight:800;line-height:1}
+  .metric small{color:#64748b}
+
+
+
 </style>
 </head>
 <body>
@@ -97,24 +129,88 @@
     <label class="chip"><input type="checkbox" class="resp" value="grover" checked> Grover</label>
     <label class="chip"><input type="checkbox" class="resp" value="juan carlos" checked> Juan Carlos</label>
     <label class="chip"><input type="checkbox" class="resp" value="wilber" checked> Wilber</label>
+    <label class="chip"><input type="checkbox" class="resp" value="diomedes" checked> Diomedes</label>
   </div>
   <div class="row">
     <button id="btnRun">Generar</button>
-    <button id="btnToggleEdit">Editar Planificado</button>
     <span id="status" style="color:#666"></span>
   </div>
 </div>
+
+<!-- KPIs -->
+<!-- KPIs -->
+<div id="kpis">
+  <!-- General (rango completo) -->
+  <div class="kpi kpi-card">
+    <h4>Resumen General</h4>
+    <div class="metrics">
+      <div class="metric">
+        <div class="m-label">Planificado</div>
+        <div class="m-val" id="kpiPlanTotal">—</div>
+        <small id="kpiGeneralRange">—</small>
+      </div>
+      <div class="metric">
+        <div class="m-label">Elaborado</div>
+        <div class="m-val" id="kpiDoneTotal">—</div>
+        <small>Hasta hoy</small>
+      </div>
+      <div class="metric">
+        <div class="m-label">Avance</div>
+        <div class="m-val" id="kpiPctTotal">—</div>
+        <small>Elaborado / Planificado</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hasta hoy (acumulado) -->
+  <div class="kpi kpi-card">
+    <h4>Resumen (acumulado hasta hoy)</h4>
+    <div class="metrics">
+      <div class="metric">
+        <div class="m-label">Planificado acum.</div>
+        <div class="m-val" id="kpiPlanToToday">—</div>
+        <small id="kpiTodayRange">—</small>
+      </div>
+      <div class="metric">
+        <div class="m-label">Elaborado acum.</div>
+        <div class="m-val" id="kpiDoneToToday">—</div>
+        <small>Hasta hoy</small>
+      </div>
+      <div class="metric">
+        <div class="m-label">Avance</div>
+        <div class="m-val" id="kpiPctToToday">—</div>
+        <small>Elaborado / Planificado</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top responsables (avance hasta hoy) -->
+  <div class="kpi kpi-card">
+    <h4>Avance por responsable (hasta hoy)</h4>
+    <div class="leaders" id="kpiLeaders"></div>
+  </div>
+</div>
+
+
+
+
 
 <div style="overflow:auto; border:1px solid #eee; border-radius:10px;">
   <table id="grid"></table>
 </div>
 <div class="legend">
   En <b>Planificado</b> puedes editar manualmente el número por día y responsable.<br>
-  En <b>Elaborado muestra Sector, Código MTC y Código Preliminar</b>.<br>
+  En <b>Elaborado</b> haz clic para ver Sector, Código MTC y Código Preliminar.<br>
 </div>
 
 <div id="chartWrap">
   <canvas id="sCurve"></canvas>
+</div>
+
+<!-- Resumen semanal -->
+<div id="weeklyWrap">
+  <h3>Resumen por semana (Lun–Dom)</h3>
+  <table id="weeklyTbl"></table>
 </div>
 
 <!-- Modal -->
@@ -134,7 +230,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 
 <script>
-  // ====== Credenciales ======
+  // ====== Supabase ======
   const SUPABASE_URL = "https://wbzxbfqowlfmmkwqeyam.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndienhiZnFvd2xmbW1rd3FleWFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5ODUwMDQsImV4cCI6MjA3MjU2MTAwNH0.mJJ7yID73tUerWE_aiNw3ZE4o-Q9YrT39YN-iS2CksA";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -143,15 +239,15 @@
   const ID_FIELD   = "id";
   const CODE_FIELD = "codigo_mtc";
   const PRELIM_FIELD = "codigo_preliminar";
-  const SECTOR_FIELD = "comunidad";             // si tu "sector" está en otro campo, cambia aquí
+  const SECTOR_FIELD = "comunidad";
   const RESP_FIELD = "responsable_tecnico";
   const DONE_FIELD = "fecha_elaboracion";
   const PLAN_FIELD = "fecha_planificada";
   const AGENDA_TABLE = "agenda_responsables";
 
-  // ====== Overrides (edición manual de totales) ======
-  const OVERRIDE_TABLE = "avance_override";            // responsable_tecnico, fecha, tipo('plan'|'done'), valor
-  const EDITABLE_TYPES = { plan: true, done: false };  // editable: plan
+  // ====== Overrides ======
+  const OVERRIDE_TABLE = "avance_override";
+  const EDITABLE_TYPES = { plan: false, done: false };
   let editMode = false;
   let overridesMap = new Map(); // `${resp}|${fecha}|${tipo}` -> int
 
@@ -159,40 +255,67 @@
   const gridEl   = document.getElementById("grid");
   const modalBack = document.getElementById("modalBack");
   const btnCloseModal = document.getElementById("btnCloseModal");
-  let chart;
+  let chartS;
+
+  // ====== Plugin "línea de hoy" ======
+  const TodayLinePlugin = {
+    id: 'todayLine',
+    afterDraw(chart, args, opts) {
+      const { ctx, chartArea, scales } = chart;
+      if (!chartArea) return;
+      const xScale = scales.x;
+      const idx = opts?.index;
+      if (idx == null || idx < 0) return;
+
+      const x = xScale.getPixelForValue(idx);
+      ctx.save();
+      ctx.strokeStyle = 'rgba(99,102,241,.6)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4,4]);
+      ctx.beginPath();
+      ctx.moveTo(x, chartArea.top);
+      ctx.lineTo(x, chartArea.bottom);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#111';
+      ctx.font = '12px system-ui, Arial';
+      ctx.fillText('Hoy', x + 6, chartArea.top + 14);
+      ctx.restore();
+    }
+  };
+
+
 
   // ====== Rango por defecto ======
-  (function setDefaults(){
-    // Inicio fijo: 01/09/2025 (mes 8 = septiembre)
-    const startFixed = new Date(2025, 8, 1);
+(function setDefaults(){
+  // Inicio (deja tu fecha preferida)
+  const startFixed = new Date(2025, 8, 1); // 01/09/2025 (mes 8)
 
-    // Fin = domingo de la semana actual (lunes + 6)
-    const today = new Date();
-    const monday = new Date(today);
-    const dow = monday.getDay();                    // 0=dom, 1=lun, ... 6=sáb
-    const diffToMon = (dow === 0 ? -6 : 1 - dow);   // retrocede hasta lunes
-    monday.setDate(monday.getDate() + diffToMon);
-    const end = new Date(monday);
-    end.setDate(end.getDate() + 6);                 // domingo
+  // Fin por defecto: 03/10/2025 (mes 9)
+  const endFixed = new Date(2025, 9, 3);   // 03/10/2025
 
-    document.getElementById("start").value = fmtDate(startFixed);
-    document.getElementById("end").value   = fmtDate(end);
+  const startEl = document.getElementById("start");
+  const endEl   = document.getElementById("end");
 
-    // Chips activas
-    document.querySelectorAll('.chip').forEach(lbl=>{
-      const cb = lbl.querySelector('input');
-      if (cb.checked) lbl.classList.add('active');
-      cb.addEventListener('change', ()=> lbl.classList.toggle('active', cb.checked));
-    });
-  })();
+  startEl.value = fmtDate(startFixed);
+
+  // Solo si está vacío, asigna el valor por defecto (por si en algún flujo ya viene con valor)
+  if (!endEl.value) endEl.value = fmtDate(endFixed);
+  endEl.title = "Sugerido: 2025-10-03 (editable)";
+
+  // Chips activas
+  document.querySelectorAll('.chip').forEach(lbl=>{
+    const cb = lbl.querySelector('input');
+    if (cb.checked) lbl.classList.add('active');
+    cb.addEventListener('change', ()=> lbl.classList.toggle('active', cb.checked));
+  });
+})();
+
+
+
 
   document.getElementById("btnRun").addEventListener("click", run);
-  document.getElementById("btnToggleEdit").addEventListener("click", ()=>{
-    editMode = !editMode;
-    document.getElementById("btnToggleEdit").textContent =
-      editMode ? "Salir de edición" : "Editar Planificado";
-    run();
-  });
+
   document.querySelectorAll('.resp').forEach(cb => cb.addEventListener('change', run));
 
   btnCloseModal.addEventListener('click', closeModal);
@@ -234,6 +357,9 @@
 
     renderGrid(planCounts, doneCounts, days, agenda);
     renderCurve(planCounts, doneCounts, days);
+    renderKpis(planCounts, doneCounts, days);
+    renderWeekly(planCounts, doneCounts, days);
+
     window._cellLists = cellLists;
     status("Listo.");
   }
@@ -317,40 +443,32 @@
   function wdayName(d){ return ["dom","lun","mar","mié","jue","vie","sáb"][d.getDay()]; }
   function escapeHtml(s){
     return (s??"").toString().replace(/[&<>"']/g, m => (
-      {"&":"&amp;","<":"&lt;","~":"&gt;","\"":"&quot;","'":"&#39;"}[m]
+      {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]
     ));
   }
   const sum = arr => arr.reduce((a,b)=>a+b,0);
-  const cumulative = arr => { let s=0; return arr.map(v=> (s+=v)); };
+
+  const todayKey = (()=>{ const d=new Date(); return fmtDate(d); })();
 
   // Para mostrar el motivo de agenda en la celda
   const motivoHtml = (a) => (a && a.motivo)
     ? `<div class="motivo">${escapeHtml(a.motivo)}</div>`
     : "";
 
-  // Clave YYYY-MM-DD del día de hoy
-  const todayKey = (()=>{
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const day = String(d.getDate()).padStart(2,'0');
-    return `${y}-${m}-${day}`;
-  })();
-
   function buildCounts(rows, days){
     const dayKeys = days.map(fmtDate);
-    const responsables = [...new Set(rows.map(r=>r[RESP_FIELD]).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    const responsables = [...new Set(rows.map(r=> (r[RESP_FIELD]??"").toString().trim().toLowerCase()))]
+      .filter(Boolean).sort((a,b)=>a.localeCompare(b));
     const planCounts = {}, doneCounts = {}, cellLists = { plan:new Map(), done:new Map() };
     responsables.forEach(resp=>{
       planCounts[resp] = Object.fromEntries(dayKeys.map(k=>[k,0]));
       doneCounts[resp] = Object.fromEntries(dayKeys.map(k=>[k,0]));
     });
     rows.forEach(r=>{
-      const resp = r[RESP_FIELD]; if(!resp) return;
+      const resp = (r[RESP_FIELD]??"").toString().trim().toLowerCase(); if(!resp) return;
       const dPlan = toDateOnly(r[PLAN_FIELD]);
       const dDone = toDateOnly(r[DONE_FIELD]);
 
-      // Para modal de Elaborado: guardo campos
       const objForModal = {
         sector: r[SECTOR_FIELD] ?? "",
         codigo_mtc: r[CODE_FIELD] ?? "",
@@ -373,24 +491,22 @@
     return { planCounts, doneCounts, cellLists };
   }
 
-  // Mapear agenda a { "Resp|YYYY-MM-DD": {tipo,motivo,color} }
   function buildAgendaMap(agenda){
     const m = new Map();
     agenda.forEach(a=>{
-      const resp = (a.responsable_tecnico ?? "").toString();
+      const resp = (a.responsable_tecnico ?? "").toString().trim().toLowerCase();
       const key = `${resp}|${a.fecha}`;
       m.set(key, a);
     });
     return m;
   }
 
-  // ====== Render tabla con TOTALES y celdas unidas ======
+  // ====== Render tabla diaria ======
   function renderGrid(planCounts, doneCounts, days, agenda){
     const agendaMap = buildAgendaMap(agenda);
     const responsables = Object.keys(planCounts);
     const dayKeys = days.map(fmtDate);
 
-    // Totales por columna (por día) y grandes totales
     const planTotalsByDay = dayKeys.map(k => responsables.reduce((acc,r)=> acc + (planCounts[r][k]||0), 0));
     const doneTotalsByDay = dayKeys.map(k => responsables.reduce((acc,r)=> acc + (doneCounts[r][k]||0), 0));
     const grandPlan = sum(planTotalsByDay);
@@ -398,7 +514,7 @@
 
     let html = "";
 
-    // Encabezado (dos sticky + TOTAL)
+    // Encabezado
     html += "<tr>";
     html += `<th class="sticky l1">RESPONSABLE</th>`;
     html += `<th class="sticky l2">TIPO</th>`;
@@ -411,12 +527,12 @@
     html += `<th>TOTAL</th>`;
     html += "</tr>";
 
-    // Filas por responsable (Planificado + Elaborado)
+    // Filas por responsable
     responsables.forEach(resp=>{
       const planRowTotal = dayKeys.reduce((acc,k)=> acc + (planCounts[resp][k]||0), 0);
       const doneRowTotal = dayKeys.reduce((acc,k)=> acc + (doneCounts[resp][k]||0), 0);
 
-      // ---- Fila 1: Planificado (EDITABLE)
+      // Planificado (editable)
       html += `<tr>`;
       html += `<td class="sticky l1 respname" rowspan="2">${escapeHtml(resp)}</td>`;
       html += `<td class="sticky l2 subrow">Planificado</td>`;
@@ -424,7 +540,6 @@
         const k = fmtDate(d);
         const n = planCounts[resp][k] || 0;
         const clsDay = (k===todayKey ? "today " : "") + (d.getDay()===0 ? "sun" : d.getDay()===6 ? "sat" : "");
-
         const a = agendaMap.get(`${resp}|${k}`);
         const clsMark = a ? `mark ${ (a.tipo||'').toLowerCase() }` : "";
         const style = a && a.color ? ` style="box-shadow: inset 0 0 0 9999px ${a.color};"` : "";
@@ -452,14 +567,13 @@
       html += `<td class="totalrow">${planRowTotal}</td>`;
       html += `</tr>`;
 
-      // ---- Fila 2: Elaborado (NO editable; clic abre modal con detalles)
+      // Elaborado (clic abre modal)
       html += `<tr>`;
       html += `<td class="sticky l2 subrow">Elaborado</td>`;
       days.forEach(d=>{
         const k = fmtDate(d);
         const n = doneCounts[resp][k] || 0;
         const clsDay = (k===todayKey ? "today " : "") + (d.getDay()===0 ? "sun" : d.getDay()===6 ? "sat" : "");
-
         const a = agendaMap.get(`${resp}|${k}`);
         const clsMark = a ? `mark ${ (a.tipo||'').toLowerCase() }` : "";
         const style = a && a.color ? ` style="box-shadow: inset 0 0 0 9999px ${a.color};"` : "";
@@ -485,7 +599,7 @@
       html += `</tr>`;
     });
 
-    // ---- Fila TOTAL Planificado + Elaborado
+    // Totales finales
     html += `<tr class="totalrow">`;
     html += `<td class="sticky l1 totalrow" rowspan="2">TOTAL</td>`;
     html += `<td class="sticky l2 totalrow">Planificado</td>`;
@@ -502,7 +616,7 @@
     days.forEach((d, i)=>{
       const k = fmtDate(d);
       const clsDay = (k===todayKey ? "today " : "") + (d.getDay()===0 ? "sun" : d.getDay()===6 ? "sat" : "");
-      html += `<td class="${clsDay} totalrow">${doneTotalsByDay[i]}</td>`;
+      html += `<td class="${clsDay} totalrow">${sum(Object.values(doneCounts).map(obj=>obj[k]||0))}</td>`;
     });
     html += `<td class="totalrow">${grandDone}</td>`;
     html += `</tr>`;
@@ -522,34 +636,87 @@
     try{
       await saveOverride(resp, fecha, tipo, valor);
       status("Guardado ✓");
-      run(); // refresca totales y curva
+      run(); // refresca todo
     }catch(err){
       console.error(err);
       status("Error al guardar: " + (err?.message||""));
     }
   });
 
-  // ====== Curva S ======
+  // ====== Curva S (acumulado total) ======
   function renderCurve(planCounts, doneCounts, days){
-    const labels = days.map(d => String(d.getDate()).padStart(2,'0'));
-    const dayKeys = days.map(fmtDate);
-    const rPlan = Object.keys(planCounts);
-    const rDone = Object.keys(doneCounts);
-    const planDaily = dayKeys.map(k => rPlan.reduce((acc,r)=>acc + (planCounts[r][k]||0), 0));
-    const doneDaily = dayKeys.map(k => rDone.reduce((acc,r)=>acc + (doneCounts[r][k]||0), 0));
-    const planCum = cumulative(planDaily);
-    const doneCum = cumulative(doneDaily);
+    // Etiquetas DD/MM
+    const labels = days.map(d => {
+      const dd = String(d.getDate()).padStart(2,'0');
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      return `${dd}/${mm}`;
+    });
 
-    const ctx = document.getElementById('sCurve').getContext('2d');
-    if (chart) chart.destroy();
-    Chart.register(ChartDataLabels);
-    chart = new Chart(ctx, {
+    const dayKeys = days.map(fmtDate);
+    const responsables = Object.keys(planCounts);
+
+    // Sumas diarias totales
+    const planDaily = dayKeys.map(k => responsables.reduce((acc,r)=>acc + (planCounts[r][k]||0), 0));
+    const doneDaily = dayKeys.map(k => responsables.reduce((acc,r)=>acc + (doneCounts[r][k]||0), 0));
+
+    // Índices clave
+    const todayKeyLocal = fmtDate(new Date());
+    const todayIndex = dayKeys.indexOf(todayKeyLocal);
+
+    // Tope planificado: 08/oct/2025 (mes 9)
+    const PLAN_CAP_DATE = new Date(2025, 9, 8);
+    const planCapKey = fmtDate(PLAN_CAP_DATE);
+    let planCapIndex = dayKeys.lastIndexOf(planCapKey);
+    if (planCapIndex === -1){
+      // último índice <= cap
+      planCapIndex = -1;
+      for (let i=0;i<dayKeys.length;i++){
+        if (dayKeys[i] <= planCapKey) planCapIndex = i;
+      }
+    }
+
+    // Acumulados
+    let s=0;
+    const planCumCapped = planDaily.map((v, i) => {
+      if (planCapIndex >= 0){
+        if (i <= planCapIndex){ s += v; return s; }
+        return s; // plano tras 08/10
+      } else {
+        return 0;
+      }
+    });
+
+    s = 0;
+    const doneCumTruncated = doneDaily.map((v, i) => {
+      if (todayIndex >= 0 && i > todayIndex) return null; // cortar después de hoy
+      s += v; return s;
+    });
+
+    const canvas = document.getElementById('sCurve');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    if (chartS) chartS.destroy();
+    Chart.register(ChartDataLabels, TodayLinePlugin);
+
+    chartS = new Chart(ctx, {
       type: 'line',
       data: {
         labels,
         datasets: [
-          { label: 'Acum Planificado', data: planCum, tension: 0.25, pointRadius: 3 },
-          { label: 'Acum Elaborado',   data: doneCum, tension: 0.25, pointRadius: 3 }
+          {
+            label: 'Acum Planificado (fijo al 08/10)',
+            data: planCumCapped,
+            tension: 0.25,
+            pointRadius: 3
+          },
+          {
+            label: 'Acum Elaborado (hasta hoy)',
+            data: doneCumTruncated,
+            tension: 0.25,
+            pointRadius: 3,
+            spanGaps: true
+          }
         ]
       },
       options: {
@@ -557,20 +724,145 @@
         maintainAspectRatio: false,
         plugins: {
           legend: { position: 'top' },
-          datalabels: { formatter: v => (v>0? v : ''), align: 'top', anchor: 'end', font: { size: 10 } },
-          tooltip: { enabled: true }
+          datalabels: {
+            formatter: v => (v>0? v : ''),
+            align: 'top',
+            anchor: 'end',
+            font: { size: 10 }
+          },
+          tooltip: { enabled: true },
+          // opciones del plugin "todayLine"
+          todayLine: { index: todayIndex }
         },
         scales: { y: { beginAtZero: true } }
       }
     });
   }
+//RENDER KPIIIISS
+function renderKpis(planCounts, doneCounts, days){
+  const dayKeys = days.map(fmtDate);
+  const responsables = Object.keys(planCounts);
+
+  // Utils
+  const sumArr = (a) => a.reduce((x,y)=>x+y,0);
+  const sumSlice = (a, endIdx) => endIdx >= 0 ? sumArr(a.slice(0, endIdx+1)) : 0;
+
+  // Totales diarios (sumando todos los responsables)
+  const planDaily = dayKeys.map(k => responsables.reduce((acc,r)=> acc + (planCounts[r][k]||0), 0));
+  const doneDaily = dayKeys.map(k => responsables.reduce((acc,r)=> acc + (doneCounts[r][k]||0), 0));
+
+  // ===== General (todo el rango) =====
+  const planTotalAll = sumArr(planDaily);
+  const doneTotalAll = sumArr(doneDaily);
+  const pctTotal = planTotalAll ? Math.round((doneTotalAll/planTotalAll)*100) : 0;
+
+  document.getElementById('kpiPlanTotal').textContent = planTotalAll;
+  document.getElementById('kpiDoneTotal').textContent = doneTotalAll;
+  document.getElementById('kpiPctTotal').textContent  = pctTotal + '%';
+
+  const startStr = document.getElementById("start").value;
+  const endStr   = document.getElementById("end").value;
+  document.getElementById('kpiGeneralRange').textContent = `${startStr} → ${endStr}`;
+
+  // ===== Hasta hoy (acumulado) =====
+  const todayStr = fmtDate(new Date());
+
+  // último índice <= hoy (si hoy no está exacto en el rango)
+  let todayIdx = dayKeys.indexOf(todayStr);
+  if (todayIdx === -1){
+    todayIdx = -1;
+    for (let i=0; i<dayKeys.length; i++){
+      if (dayKeys[i] <= todayStr) todayIdx = i;
+    }
+  }
+
+  const planToToday = sumSlice(planDaily, todayIdx);
+  const doneToToday = sumSlice(doneDaily, todayIdx);
+  const pctToToday  = planToToday ? Math.round((doneToToday/planToToday)*100) : 0;
+
+  document.getElementById('kpiPlanToToday').textContent = planToToday;
+  document.getElementById('kpiDoneToToday').textContent = doneToToday;
+  document.getElementById('kpiPctToToday').textContent  = pctToToday + '%';
+
+  // etiqueta del corte (min(end, hoy))
+  const cutoff = (endStr && endStr < todayStr) ? endStr : todayStr;
+  document.getElementById('kpiTodayRange').textContent =
+    `${startStr} → ${cutoff}${todayIdx === -1 ? ' (hoy fuera del rango)' : ''}`;
+
+  // ===== Top responsables (avance hasta hoy) =====
+  const arr = responsables.map(r=>{
+    const planByDayR = dayKeys.map(k => (planCounts[r][k]||0));
+    const doneByDayR = dayKeys.map(k => (doneCounts[r][k]||0));
+    const pToday = sumSlice(planByDayR, todayIdx);
+    const dToday = sumSlice(doneByDayR, todayIdx);
+    const pct    = pToday ? (dToday/pToday)*100 : 0;
+    return { r: r.replace(/\b\w/g, m=>m.toUpperCase()), p: pToday, d: dToday, pct };
+  }).sort((a,b)=> b.pct - a.pct);
+
+  const cont = document.getElementById('kpiLeaders');
+  cont.innerHTML = arr.map(x =>
+    `<div class="leader"><span>${x.r}</span><span><span class="badge">${x.d}/${x.p}</span> ${Math.round(x.pct)}%</span></div>`
+  ).join('');
+}
+
+
+
+
+  function capResp(r){ return r.replace(/\b\w/g, m=>m.toUpperCase()); }
+
+  // ====== Resumen semanal (compacto) ======
+  function renderWeekly(planCounts, doneCounts, days){
+    const dayKeys = days.map(fmtDate);
+    const responsables = Object.keys(planCounts);
+
+    // mapa semana -> {plan, done}
+    const weeks = new Map(); // key = YYYY-MM-DD (lunes)
+    dayKeys.forEach(k=>{
+      const wk = weekKey(new Date(k));
+      if(!weeks.has(wk)) weeks.set(wk, {plan:0, done:0});
+      const agg = weeks.get(wk);
+      responsables.forEach(r=>{
+        agg.plan += (planCounts[r][k]||0);
+        agg.done += (doneCounts[r][k]||0);
+      });
+    });
+
+    // Render
+    let html = `<tr>
+      <th>Semana (lunes)</th>
+      <th>Planificado</th>
+      <th>Elaborado</th>
+      <th>Avance %</th>
+    </tr>`;
+    for(const [wk, v] of weeks){
+      const pct = v.plan ? Math.round((v.done/v.plan)*100) : 0;
+      html += `<tr>
+        <td>${wk}</td>
+        <td>${v.plan}</td>
+        <td>${v.done}</td>
+        <td>${pct}%</td>
+      </tr>`;
+    }
+    document.getElementById('weeklyTbl').innerHTML = html;
+  }
+
+  function weekKey(d){
+    // ISO-like: lunes inicio
+    const day = d.getDay(); // 0=dom, 1=lun
+    const diffToMon = (day === 0 ? -6 : 1 - day);
+    const monday = new Date(d);
+    monday.setDate(d.getDate() + diffToMon);
+    const y = monday.getFullYear();
+    const m = String(monday.getMonth()+1).padStart(2,'0');
+    const dd= String(monday.getDate()).padStart(2,'0');
+    return `${y}-${m}-${dd}`;
+  }
 
   // ====== Modal (Elaborado) ======
   function openCell(kind, resp, ymd){
-    const map = window._cellLists.done;   // solo elaborado
+    const map = window._cellLists.done;
     const list = map.get(`${resp}|${ymd}`) || [];
 
-    // Construir tabla con múltiples campos
     const rowsHtml = list.length
       ? `<table>
            <thead>
