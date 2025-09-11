@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Panel — Predios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f7f8fb; --card:#ffffff; --text:#0f172a; --muted:#64748b; --ring:#e2e8f0; --brand:#0ea5e9;
+    --chip:#eef7ff; --chip-border:#bfdbfe; --ok:#10b981; --bad:#ef4444;
+  }
+  body.dark{
+    --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8; --ring:#1e293b; --brand:#38bdf8;
+    --chip:#0b2a3a; --chip-border:#164e63; --ok:#34d399; --bad:#f87171;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:var(--bg); color:var(--text);
+  }
+  header{
+    position:sticky; top:0; z-index:20;
+    backdrop-filter:saturate(180%) blur(6px);
+    background:color-mix(in oklab, var(--bg) 86%, transparent);
+    border-bottom:1px solid var(--ring);
+  }
+  .wrap{max-width:1150px; margin:0 auto; padding:18px 18px;}
+  .row{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .spacer{flex:1}
+  h1{font-size:22px; margin:0; letter-spacing:.2px}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:800}
+  .brand .logo{width:30px; height:30px; display:grid; place-items:center; border-radius:10px; background:linear-gradient(135deg, var(--brand), #22d3ee);}
+  .brand .logo svg{fill:white}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 14px; border-radius:10px; border:1px solid var(--ring);
+    background:var(--card); color:var(--text); cursor:pointer; text-decoration:none; font-weight:600;
+  }
+  .btn.primary{background:var(--brand); border-color:transparent; color:white}
+  .btn:focus{outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--brand) 35%, transparent)}
+  .toggle{background:var(--card)}
+  /* grid de tarjetas */
+  .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:16px}
+  .col-4{grid-column:span 12}
+  @media (min-width:720px){ .col-4{grid-column:span 4} }
+  .card{
+    background:var(--card); border:1px solid var(--ring); border-radius:16px; padding:16px;
+    box-shadow:0 8px 30px color-mix(in oklab, var(--ring) 35%, transparent);
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .card h3{margin:0; font-size:16px}
+  .card p{margin:0; font-size:13px; color:var(--muted)}
+  .icon{
+    width:40px; height:40px; border-radius:12px;
+    display:grid; place-items:center; color:white;
+    background:linear-gradient(135deg, var(--brand), #22d3ee);
+  }
+  .actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:4px}
+  /* panel embebido */
+  .viewer{
+    margin-top:18px; background:var(--card); border:1px solid var(--ring);
+    border-radius:16px; overflow:hidden;
+  }
+  .viewer-header{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-bottom:1px solid var(--ring)}
+  .viewer-title{font-weight:700}
+  iframe{width:100%; height:72vh; border:0; background:var(--bg)}
+  /* estado */
+  .status{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .badge{padding:4px 8px; border-radius:999px; border:1px solid var(--ring); font-size:12px; color:var(--muted); background:color-mix(in oklab, var(--card) 75%, transparent)}
+  .pill{padding:4px 10px; border-radius:999px; font-size:12px; border:1px solid var(--chip-border); background:var(--chip)}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  .muted{color:var(--muted)}
+  footer{padding:22px 0; color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap row">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 2l3.09 6.26L22 9.27l-5 4.9L18.18 22 12 18.77 5.82 22 7 14.17l-5-4.9 6.91-1.01L12 2z"/></svg>
+      </div>
+      <h1>Panel — Predios</h1>
+    </div>
+    <div class="spacer"></div>
+    <button id="themeBtn" class="btn toggle" title="Modo claro/oscuro">
+      <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.364-7.364l-1.414 1.414M6.05 17.95l-1.414 1.414M17.95 17.95l1.414 1.414M6.05 6.05 4.636 4.636"/></svg>
+      <svg id="iconMoon" style="display:none" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      Tema
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Estado rápido -->
+  <section class="card" style="margin-bottom:16px">
+    <div class="row" style="justify-content:space-between; align-items:flex-start">
+      <div>
+        <h3>Estado rápido</h3>
+        <p class="muted">Conexión.</p>
+      </div>
+      <div class="status">
+        <span id="statusConn" class="pill">Conectando…</span>
+        <span id="countPredios" class="badge">Predios: —</span>
+        <span id="lastDate" class="badge">Último elaborado: —</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tarjetas -->
+  <section class="grid">
+    <article class="card col-4">
+      <div class="row">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        </div>
+        <div>
+          <h3>Avance (Planificado vs Elaborado)</h3>
+          <p>Curva S, totales por día y detalle clickeable por responsable.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="loadHere('avance')">Ver aquí</button>
+        <a class="btn" href="index_avance2.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+      </div>
+    </article>
+
+    <article class="card col-4">
+      <div class="row">
+        <div class="icon" style="background:linear-gradient(135deg,#22d3ee,#14b8a6)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>
+        </div>
+        <div>
+          <h3>Predios — Edición & Filtros</h3>
+          <p>Tabla editable (código MTC y fechas) con filtros externos y paginación.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="loadHere('predios')">Ver aquí</button>
+        <a class="btn" href="index_predios2.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+      </div>
+    </article>
+
+    <!-- NUEVA TARJETA: Predios — Avance (códigos + avance) -->
+    <article class="card col-4">
+      <div class="row">
+        <div class="icon" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 3h18v2H3V3zm0 8h10v2H3v-2zm0 8h6v2H3v-2zM19 9l-3 3-2-2-4 4 1.5 1.5 2.5-2.5 2 2 4.5-4.5L19 9z"/>
+          </svg>
+        </div>
+        <div>
+          <h3>Predios — Avance (códigos + avance)</h3>
+          <p>Actualizar códigos y avance por responsable/fecha.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="loadHere('predios_avance')">Ver aquí</button>
+        <a class="btn" href="index_predios_avance.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+      </div>
+    </article>
+
+    <article class="card col-4">
+      <div class="row">
+        <div class="icon" style="background:linear-gradient(135deg,#a78bfa,#60a5fa)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8v8H3V3zm10 0h8v5h-8V3zM3 13h5v8H3v-8zm7 5h11v3H10v-3zm0-7h11v5H10v-5z"/></svg>
+        </div>
+        <div>
+          <h3>Resumen</h3>
+          <p>Tablas resumidas por comunidad, entregable y responsable.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="loadHere('resumen')">Ver aquí</button>
+        <a class="btn" href="index_resumen.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+      </div>
+    </article>
+  </section>
+
+  <!-- Visor embebido -->
+  <section class="viewer" id="viewer" style="display:none">
+    <div class="viewer-header">
+      <div class="viewer-title" id="viewerTitle">Visor</div>
+      <div class="row">
+        <a id="openNew" class="btn" href="#" target="_blank" rel="noopener">Abrir en pestaña</a>
+        <button class="btn" onclick="closeViewer()">Cerrar</button>
+      </div>
+    </div>
+    <iframe id="frame" title="Vista"></iframe>
+  </section>
+
+  <footer class="muted">
+    Control de avance predial
+  </footer>
+</main>
+
+<!-- Supabase -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+  // ===== Configura aquí si tus archivos tienen otros nombres =====
+  const PAGES = {
+    avance:          'index_avance2.html',
+    predios:         'index_predios2.html',
+    predios_avance:  'index_predios_avance.html',   // <— NUEVO
+    resumen:         'index_resumen.html'
+  };
+
+  // ===== Modo oscuro/claro =====
+  const themeBtn = document.getElementById('themeBtn');
+  const iconSun  = document.getElementById('iconSun');
+  const iconMoon = document.getElementById('iconMoon');
+
+  function setTheme(mode){
+    const dark = mode === 'dark';
+    document.body.classList.toggle('dark', dark);
+    iconSun.style.display  = dark ? 'none' : 'block';
+    iconMoon.style.display = dark ? 'block' : 'none';
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+  }
+  setTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  themeBtn.addEventListener('click', ()=> setTheme(document.body.classList.contains('dark') ? 'light' : 'dark'));
+
+  // ===== Visor embebido =====
+  const viewer = document.getElementById('viewer');
+  const frame  = document.getElementById('frame');
+  const openNew = document.getElementById('openNew');
+  const viewerTitle = document.getElementById('viewerTitle');
+
+  function loadHere(key){
+    const url = PAGES[key];
+    if(!url){ alert('Ruta no encontrada. Ajusta PAGES.'); return; }
+    frame.src = url;
+    openNew.href = url;
+    viewerTitle.textContent =
+      key === 'avance'         ? 'Avance (Planificado vs Elaborado)'
+    : key === 'predios'        ? 'Predios — Edición & Filtros'
+    : key === 'predios_avance' ? 'Predios — Avance (códigos + avance)'
+                               : 'Resumen';
+    viewer.style.display = 'block';
+    frame.focus();
+  }
+  function closeViewer(){
+    frame.src = 'about:blank';
+    viewer.style.display = 'none';
+  }
+
+  // ===== Estado rápido con Supabase (opcional) =====
+  const SUPABASE_URL = "https://wbzxbfqowlfmmkwqeyam.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndienhiZnFvd2xmbW1rd3FleWFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5ODUwMDQsImV4cCI6MjA3MjU2MTAwNH0.mJJ7yID73tUerWE_aiNw3ZE4o-Q9YrT39YN-iS2CksA";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const statusConn  = document.getElementById('statusConn');
+  const countPredios = document.getElementById('countPredios');
+  const lastDate = document.getElementById('lastDate');
+
+  (async function quickStatus(){
+    try{
+      // 1) Conteo
+      const { count, error: e1 } = await sb.from('predios').select('id', { count:'exact', head:true });
+      if(e1) throw e1;
+      countPredios.textContent = `Predios: ${count ?? '—'}`;
+
+      // 2) Última fecha de elaboración
+      const { data: last, error: e2 } = await sb.from('predios')
+        .select('fecha_elaboracion').order('fecha_elaboracion', {ascending:false}).limit(1);
+      if(e2) throw e2;
+      const d = (last && last[0] && last[0].fecha_elaboracion) ? String(last[0].fecha_elaboracion).slice(0,10) : '—';
+      lastDate.textContent = `Último elaborado: ${d}`;
+
+      statusConn.textContent = 'Conexión: OK';
+      statusConn.style.borderColor = 'transparent';
+      statusConn.classList.add('ok');
+    }catch(err){
+      statusConn.textContent = 'Conexión: ERROR';
+      statusConn.classList.add('bad');
+      console.error(err);
+    }
+  })();
+</script>
+</body>
+</html>

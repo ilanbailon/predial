@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Resumen — Predios (compacto)</title>
+
+  <!-- DataTables -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/2.0.3/js/dataTables.min.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --accent:#0ea5e9; --accent2:#0369a1;
+      --bg:#f8fafc; --card:#ffffff; --muted:#64748b; --border:#e2e8f0;
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:var(--bg);color:#0f172a;font-size:13px}
+    header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#fff,rgba(255,255,255,.96));
+      border-bottom:1px solid var(--border);padding:10px 14px}
+    h1{margin:0;font-size:16px;font-weight:800}
+    .sub{color:var(--muted);font-size:11px;margin-top:2px}
+
+    main{padding:12px 14px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;
+      box-shadow:0 6px 20px -12px rgba(2,6,23,.18); margin-bottom:12px}
+
+    /* Totales tipo “badges” */
+    .badges{display:flex;flex-wrap:wrap;gap:6px}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--border);
+      border-radius:999px;background:#fff}
+    .badge .k{font-weight:800;padding:1px 6px;border-radius:999px;background:#eef7ff;color:#0f172a}
+
+    /* Tablas compactas */
+    table{border-collapse:separate;border-spacing:0;width:100%}
+    thead th, tbody td{padding:4px 6px}
+    thead th{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);font-weight:700}
+    tbody tr:nth-child(even){background:#f9fbff}
+    tbody tr:hover{background:#eef7ff}
+    .clickable{cursor:pointer;font-weight:700}
+    .tot{font-weight:800}
+
+    /* modal */
+    .back{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:50}
+    .modal{background:#fff;border-radius:12px;max-width:900px;width:96%;padding:14px}
+    .modal h4{margin:0 0 6px}
+    .list{max-height:50vh;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:#fafafa}
+    .pill{display:inline-block;margin:3px;padding:4px 8px;border:1px solid var(--border);border-radius:999px;background:#fff}
+    .dt-length select{min-width:auto}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Resumen — Predios</h1>
+    <div class="sub">Compacto, sin filtros globales. <a class="sub" href="index_predios.html">Ir al index de edición</a></div>
+  </header>
+
+  <main>
+    <div class="card" id="status">Cargando…</div>
+
+    <!-- Totales (badges) -->
+    <div class="card">
+      <strong>Totales por Entregable</strong>
+      <div id="totalsBadges" class="badges" style="margin-top:6px"></div>
+    </div>
+
+    <!-- Pivots -->
+    <div class="card">
+      <strong>Comunidad × Entregable</strong>
+      <table id="pvComEnt" class="display compact">
+        <thead id="pvComEntHead"></thead>
+        <tbody id="pvComEntBody"></tbody>
+        <tfoot id="pvComEntFoot"></tfoot>
+      </table>
+    </div>
+
+    <div class="card">
+      <strong>Responsable × Entregable</strong>
+      <table id="pvRespEnt" class="display compact">
+        <thead id="pvRespEntHead"></thead>
+        <tbody id="pvRespEntBody"></tbody>
+        <tfoot id="pvRespEntFoot"></tfoot>
+      </table>
+    </div>
+
+    <div class="card">
+      <strong>Comunidad × Responsable</strong>
+      <table id="pvComResp" class="display compact">
+        <thead id="pvComRespHead"></thead>
+        <tbody id="pvComRespBody"></tbody>
+        <tfoot id="pvComRespFoot"></tfoot>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal (drill-down pro) -->
+  <div id="back" class="back">
+    <div class="modal">
+      <h4 id="mdTitle">Detalle</h4>
+      <div id="mdContext" style="margin:4px 0 8px 0; color:#64748b; font-size:12px"></div>
+
+      <div id="mdBadges" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+        <div>
+          <h5 style="margin:0 0 6px">Desglose A</h5>
+          <table style="width:100%" id="mdBreak1">
+            <thead><tr><th>Clave</th><th style="text-align:right">#</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div>
+          <h5 style="margin:0 0 6px">Desglose B</h5>
+          <table style="width:100%" id="mdBreak2">
+            <thead><tr><th>Clave</th><th style="text-align:right">#</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="list" id="mdList"></div>
+
+      <div style="display:flex;justify-content:space-between;gap:8px;margin-top:8px">
+        <div style="display:flex;gap:6px">
+          <button id="btnCopy">Copiar códigos</button>
+          <button id="btnCSV">Exportar CSV</button>
+          <a id="btnGo" class="sub" target="_blank" href="#">Abrir en index de edición</a>
+        </div>
+        <button onclick="closeModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ====== Supabase ======
+  const SUPABASE_URL = "https://wbzxbfqowlfmmkwqeyam.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndienhiZnFvd2xmbW1rd3FleWFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5ODUwMDQsImV4cCI6MjA3MjU2MTAwNH0.mJJ7yID73tUerWE_aiNw3ZE4o-Q9YrT39YN-iS2CksA";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Campos
+  const FIELDS = {
+    pk: "id",               // cambia si tu PK es otra
+    code: "codigo_preliminar",
+    comunidad: "comunidad",
+    entregable: "entregable",
+    responsable: "responsable_tecnico",
+    grupo: "grupo"
+  };
+
+  let RAW = [], FILTERED = [];
+  let DTs = {};
+  let CELL_INDEX = new Map();
+  const statusEl = document.getElementById("status");
+
+  // ===== Utils =====
+  const uniq = arr => [...new Set(arr)];
+  const escapeHtml = s => (s??"").toString().replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;","&gt":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+  function countBy(rows, key){ const m=new Map(); rows.forEach(r=>{const k=r[key]??"(vacío)"; m.set(k,(m.get(k)||0)+1)}); return Array.from(m.entries()).sort((a,b)=>b[1]-a[1]); }
+  function renderBreakTable(tuples, tableId){
+    const tb = document.querySelector(`#${tableId} tbody`);
+    tb.innerHTML = tuples.length ? tuples.map(([k,n])=>`<tr><td>${escapeHtml(k)}</td><td style="text-align:right">${n}</td></tr>`).join("")
+                                 : `<tr><td colspan="2"><em>Sin datos</em></td></tr>`;
+  }
+  function renderBadges(tuples, el){
+    el.innerHTML = tuples.map(([label,val]) =>
+      `<span class="badge"><span>${escapeHtml(label)}</span><span class="k">${val}</span></span>`).join("");
+  }
+  function toCSV(rows, fields){
+    const header = fields.join(",");
+    const esc = v => `"${String(v??"").replace(/"/g,'""')}"`;
+    const body = rows.map(r => fields.map(f=>esc(r[f])).join(",")).join("\n");
+    return header + "\n" + body;
+  }
+  function download(filename, text){
+    const blob = new Blob([text], {type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+  }
+
+  // Orden especial de ENTREGABLE: "1° Entregable" primero, luego 1..5, luego resto
+  function sortEntKeys(keys){
+    const firstLabels = new Set(["1° Entregable","1º Entregable","1er Entregable"]);
+    let hasFirst = false;
+    const nums = [], others = [];
+    keys.forEach(k=>{
+      const s = String(k);
+      if (firstLabels.has(s)) { hasFirst = true; return; }
+      if (/^\d+$/.test(s)) nums.push(parseInt(s,10));
+      else others.push(s);
+    });
+    nums.sort((a,b)=>a-b);
+    others.sort((a,b)=>a.localeCompare(b));
+    const out = [];
+    if (hasFirst) out.push("1° Entregable");
+    out.push(...nums.map(n=>String(n)));
+    out.push(...others);
+    return out;
+  }
+
+  // Pivot genérico (con orden especial para columnas = entregable)
+  function pivotCount(rows, rowKey, colKey){
+    const rowsKeys = uniq(rows.map(r=>r[rowKey]).filter(v=>v!=null)).sort((a,b)=> String(a).localeCompare(String(b)));
+    let colKeys  = uniq(rows.map(r=>r[colKey]).filter(v=>v!=null));
+    colKeys = (colKey===FIELDS.entregable) ? sortEntKeys(colKeys) : colKeys.sort((a,b)=> String(a).localeCompare(String(b)));
+
+    const grid = new Map();
+    const cellIndex = new Map();
+    rows.forEach(r=>{
+      const rk=r[rowKey], ck=r[colKey]; if(rk==null||ck==null) return;
+      grid.set(rk+"|"+ck, (grid.get(rk+"|"+ck)||0)+1);
+      const k = rowKey+":"+rk+"|"+colKey+":"+ck;
+      if(!cellIndex.has(k)) cellIndex.set(k, []);
+      cellIndex.get(k).push(r[FIELDS.code] ?? "(sin código)");
+    });
+    return { rowsKeys, colKeys, grid, cellIndex };
+  }
+
+  function buildTable(pivot, rowTitle, colTitle, tableIds, clickKind){
+    const { rowsKeys, colKeys, grid, cellIndex } = pivot;
+    CELL_INDEX.set(clickKind, cellIndex);
+
+    document.getElementById(tableIds.head).innerHTML =
+      `<tr><th>${escapeHtml(rowTitle)}</th>${colKeys.map(c=>`<th>${escapeHtml(c)}</th>`).join("")}<th class="tot">Total</th></tr>`;
+
+    let body = "";
+    rowsKeys.forEach(rk=>{
+      let tot=0;
+      const tds = colKeys.map(ck=>{
+        const v = grid.get(rk+"|"+ck) || 0; tot+=v;
+        return v>0
+          ? `<td class="clickable" data-kind="${clickKind}" data-r="${escapeHtml(rk)}" data-c="${escapeHtml(ck)}" title="Ver códigos">${v}</td>`
+          : `<td>0</td>`;
+      }).join("");
+      body += `<tr><td>${escapeHtml(rk)}</td>${tds}<td class="tot">${tot}</td></tr>`;
+    });
+    document.getElementById(tableIds.body).innerHTML = body;
+
+    let foot = `<tr><td class="tot">Total</td>`;
+    let grand=0; colKeys.forEach(ck=>{
+      let s=0; rowsKeys.forEach(rk=> s += (grid.get(rk+"|"+ck)||0)); grand+=s;
+      foot += `<td class="tot">${s}</td>`;
+    });
+    foot += `<td class="tot">${grand}</td></tr>`;
+    document.getElementById(tableIds.foot).innerHTML = foot;
+
+    if (DTs[tableIds.table]) DTs[tableIds.table].destroy();
+    DTs[tableIds.table] = new DataTable("#"+tableIds.table, {
+      pageLength: 250,
+      lengthMenu: [[25,50,100,250,-1],[25,50,100,250,"Todos"]],
+      pagingType: 'numbers',
+      lengthChange: true, ordering: true, searching: true, scrollX: false
+    });
+
+    document.querySelectorAll(`#${tableIds.body} td.clickable`).forEach(td=>{
+      td.addEventListener("click", ()=>{
+        openModal(clickKind, td.getAttribute("data-r"), td.getAttribute("data-c"));
+      });
+    });
+  }
+
+  // Totales en badges (con orden especial)
+  function renderTotalsBadges(rows){
+    const wrap = document.getElementById("totalsBadges");
+    const map = new Map();
+    rows.forEach(r=>{
+      const k = r[FIELDS.entregable]; if (k==null) return;
+      map.set(k, (map.get(k)||0) + 1);
+    });
+    const orderedKeys = sortEntKeys(Array.from(map.keys()));
+    const items = orderedKeys.map(k => [k, map.get(k) || 0]);
+    wrap.innerHTML = items.length
+      ? items.map(([label, n])=>`<span class="badge"><span>${escapeHtml(label)}</span><span class="k">${n}</span></span>`).join("")
+      : "<em>Sin datos</em>";
+  }
+
+  // ==== Modal PRO (drill-down) ====
+  function openModal(kind, rowVal, colVal){
+    let kRow, kCol, breakA, breakB, labelA, labelB;
+    if (kind === "ComEnt"){            // Comunidad × Entregable
+      kRow = FIELDS.comunidad; kCol = FIELDS.entregable;
+      breakA = FIELDS.responsable; labelA = "Por Responsable";
+      breakB = FIELDS.entregable;  labelB = "Por Entregable";
+    } else if (kind === "RespEnt"){    // Responsable × Entregable
+      kRow = FIELDS.responsable; kCol = FIELDS.entregable;
+      breakA = FIELDS.comunidad;  labelA = "Por Comunidad";
+      breakB = FIELDS.entregable; labelB = "Por Entregable";
+    } else {                           // ComResp = Comunidad × Responsable
+      kRow = FIELDS.comunidad; kCol = FIELDS.responsable;
+      breakA = FIELDS.entregable; labelA = "Por Entregable";
+      breakB = FIELDS.responsable; labelB = "Por Responsable";
+    }
+
+    const subset = FILTERED.filter(r => String(r[kRow])===String(rowVal) && String(r[kCol])===String(colVal));
+    const codes = subset.map(r => r[FIELDS.code] ?? "(sin código)");
+
+    document.getElementById("mdTitle").textContent = `Detalle — ${rowVal} × ${colVal}`;
+    document.getElementById("mdContext").innerHTML = `Dentro de <strong>${FILTERED.length}</strong> filas. Coincidencias: <strong>${subset.length}</strong>.`;
+
+    const badges = [
+      ["Códigos", codes.length],
+      ["Comunidades distintas", new Set(subset.map(r=>r[FIELDS.comunidad])).size],
+      ["Entregables distintos", new Set(subset.map(r=>r[FIELDS.entregable])).size],
+      ["Responsables distintos", new Set(subset.map(r=>r[FIELDS.responsable])).size],
+    ];
+    renderBadges(badges, document.getElementById("mdBadges"));
+
+    document.querySelector(`#mdBreak1`).previousElementSibling.textContent = labelA;
+    document.querySelector(`#mdBreak2`).previousElementSibling.textContent = labelB;
+    renderBreakTable(countBy(subset, breakA), "mdBreak1");
+    renderBreakTable(countBy(subset, breakB), "mdBreak2");
+
+    document.getElementById("mdList").innerHTML = codes.length
+      ? codes.map(c=>`<span class="pill">${escapeHtml(c)}</span>`).join("")
+      : "<em>Sin códigos</em>";
+
+    const copy = () => navigator.clipboard.writeText(codes.join("\n"));
+    document.getElementById("btnCopy").onclick = copy;
+    document.getElementById("btnCSV").onclick = () => {
+      const fields = [FIELDS.code, FIELDS.comunidad, FIELDS.entregable, FIELDS.responsable, FIELDS.grupo];
+      download(`detalle_${rowVal}_${colVal}.csv`, toCSV(subset, fields));
+    };
+    document.getElementById("btnGo").href = `index_predios.html?q=${encodeURIComponent(String(rowVal))}`;
+
+    document.getElementById("back").style.display = "flex";
+  }
+  function closeModal(){ document.getElementById("back").style.display = "none"; }
+  window.closeModal = closeModal;
+
+  // ===== Carga y render =====
+  async function fetchAllRows(){
+    const cols = [FIELDS.pk, FIELDS.code, FIELDS.comunidad, FIELDS.entregable, FIELDS.responsable, FIELDS.grupo].join(", ");
+    const page = 1000; let from = 0, all=[];
+    while(true){
+      const { data, error } = await sb.from("predios").select(cols).order(FIELDS.pk, {ascending:true}).range(from, from+page-1);
+      if(error){ console.error(error); break; }
+      all = all.concat(data||[]);
+      if(!data || data.length<page) break;
+      from += page;
+    }
+    return all;
+  }
+
+  function renderAll(){
+    // pivots
+    const pv1 = pivotCount(FILTERED, FIELDS.comunidad, FIELDS.entregable);
+    buildTable(pv1, "COMUNIDAD", "Entregable",
+      {table:"pvComEnt", head:"pvComEntHead", body:"pvComEntBody", foot:"pvComEntFoot"}, "ComEnt");
+
+    const pv2 = pivotCount(FILTERED, FIELDS.responsable, FIELDS.entregable);
+    buildTable(pv2, "RESPONSABLE", "Entregable",
+      {table:"pvRespEnt", head:"pvRespEntHead", body:"pvRespEntBody", foot:"pvRespEntFoot"}, "RespEnt");
+
+    const pv3 = pivotCount(FILTERED, FIELDS.comunidad, FIELDS.responsable);
+    buildTable(pv3, "COMUNIDAD", "Responsable",
+      {table:"pvComResp", head:"pvComRespHead", body:"pvComRespBody", foot:"pvComRespFoot"}, "ComResp");
+
+    // Totales (badges)
+    renderTotalsBadges(FILTERED);
+  }
+
+  async function run(){
+    statusEl.textContent = "Cargando…";
+    RAW = await fetchAllRows();
+    FILTERED = RAW.slice();
+    renderAll();
+    statusEl.textContent = `Listo. Filas: ${RAW.length}`;
+  }
+  run();
+</script>
+</body>
+</html>
