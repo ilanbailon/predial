@@ -11,10 +11,6 @@
     --bg:#f7f8fb; --card:#ffffff; --text:#0f172a; --muted:#64748b; --ring:#e2e8f0; --brand:#0ea5e9;
     --chip:#eef7ff; --chip-border:#bfdbfe; --ok:#10b981; --bad:#ef4444;
   }
-  body.dark{
-    --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8; --ring:#1e293b; --brand:#38bdf8;
-    --chip:#0b2a3a; --chip-border:#164e63; --ok:#34d399; --bad:#f87171;
-  }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
@@ -41,7 +37,7 @@
   }
   .btn.primary{background:var(--brand); border-color:transparent; color:white}
   .btn:focus{outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--brand) 35%, transparent)}
-  .toggle{background:var(--card)}
+
   /* grid de tarjetas */
   .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:16px}
   .col-4{grid-column:span 12}
@@ -59,7 +55,8 @@
     background:linear-gradient(135deg, var(--brand), #22d3ee);
   }
   .actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:4px}
-  /* panel embebido */
+
+  /* visor embebido */
   .viewer{
     margin-top:18px; background:var(--card); border:1px solid var(--ring);
     border-radius:16px; overflow:hidden;
@@ -67,6 +64,7 @@
   .viewer-header{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-bottom:1px solid var(--ring)}
   .viewer-title{font-weight:700}
   iframe{width:100%; height:72vh; border:0; background:var(--bg)}
+
   /* estado */
   .status{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
   .badge{padding:4px 8px; border-radius:999px; border:1px solid var(--ring); font-size:12px; color:var(--muted); background:color-mix(in oklab, var(--card) 75%, transparent)}
@@ -86,11 +84,7 @@
       <h1>Panel — Predios</h1>
     </div>
     <div class="spacer"></div>
-    <button id="themeBtn" class="btn toggle" title="Modo claro/oscuro">
-      <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.364-7.364l-1.414 1.414M6.05 17.95l-1.414 1.414M17.95 17.95l1.414 1.414M6.05 6.05 4.636 4.636"/></svg>
-      <svg id="iconMoon" style="display:none" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      Tema
-    </button>
+    <!-- Modo noche eliminado -->
   </div>
 </header>
 
@@ -119,12 +113,12 @@
         </div>
         <div>
           <h3>Avance (Planificado vs Elaborado)</h3>
-          <p>Curva S, totales por día y detalle clickeable por responsable.</p>
+          <p>Curva S, totales por día y detalle por responsable.</p>
         </div>
       </div>
       <div class="actions">
-        <button class="btn primary" onclick="loadHere('avance')">Ver aquí</button>
-        <a class="btn" href="index_avance2.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+        <a class="btn primary" href="index_avance2.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+        <button class="btn" onclick="loadHere('avance')">Ver aquí</button>
       </div>
     </article>
 
@@ -139,12 +133,11 @@
         </div>
       </div>
       <div class="actions">
-        <button class="btn primary" onclick="loadHere('predios')">Ver aquí</button>
-        <a class="btn" href="index_predios2.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+        <a class="btn primary" href="index_predios2.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+        <button class="btn" onclick="loadHere('predios')">Ver aquí</button>
       </div>
     </article>
 
-    <!-- NUEVA TARJETA: Predios — Avance (códigos + avance) -->
     <article class="card col-4">
       <div class="row">
         <div class="icon" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">
@@ -153,13 +146,32 @@
           </svg>
         </div>
         <div>
-          <h3>Predios — Avance (códigos + avance)</h3>
-          <p>Actualizar códigos y avance por responsable/fecha.</p>
+          <h3>Predios - Act. Códigos</h3>
+          <p>Actualizar códigos /fecha.</p>
         </div>
       </div>
       <div class="actions">
-        <button class="btn primary" onclick="loadHere('predios_avance')">Ver aquí</button>
-        <a class="btn" href="index_predios_avance.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+        <a class="btn primary" href="index_predios_avance.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+        <button class="btn" onclick="loadHere('predios_avance')">Ver aquí</button>
+      </div>
+    </article>
+
+    <!-- NUEVA TARJETA: Predios — Responsable -->
+    <article class="card col-4">
+      <div class="row">
+        <div class="icon" style="background:linear-gradient(135deg,#8b5cf6,#22c55e)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm-7 9v-1a7 7 0 0 1 14 0v1z"/>
+          </svg>
+        </div>
+        <div>
+          <h3>Predios — Verificador</h3>
+          <p>Asignar areas afectadas.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn primary" href="index_predios_verificador.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+        <button class="btn" onclick="loadHere('predios_verificador')">Ver aquí</button>
       </div>
     </article>
 
@@ -174,8 +186,8 @@
         </div>
       </div>
       <div class="actions">
-        <button class="btn primary" onclick="loadHere('resumen')">Ver aquí</button>
-        <a class="btn" href="index_resumen.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+        <a class="btn primary" href="index_resumen.html" target="_blank" rel="noopener">Abrir en pestaña</a>
+        <button class="btn" onclick="loadHere('resumen')">Ver aquí</button>
       </div>
     </article>
   </section>
@@ -200,28 +212,14 @@
 <!-- Supabase -->
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
-  // ===== Configura aquí si tus archivos tienen otros nombres =====
+  // ===== Rutas embebidas =====
   const PAGES = {
-    avance:          'index_avance2.html',
-    predios:         'index_predios2.html',
-    predios_avance:  'index_predios_avance.html',   // <— NUEVO
-    resumen:         'index_resumen.html'
+    avance:               'index_avance2.html',
+    predios:              'index_predios2.html',
+    predios_avance:       'index_predios_avance.html',
+    predios_verificador:  'index_predios_verificador.html', // <— AGREGADO
+    resumen:              'index_resumen.html'
   };
-
-  // ===== Modo oscuro/claro =====
-  const themeBtn = document.getElementById('themeBtn');
-  const iconSun  = document.getElementById('iconSun');
-  const iconMoon = document.getElementById('iconMoon');
-
-  function setTheme(mode){
-    const dark = mode === 'dark';
-    document.body.classList.toggle('dark', dark);
-    iconSun.style.display  = dark ? 'none' : 'block';
-    iconMoon.style.display = dark ? 'block' : 'none';
-    localStorage.setItem('theme', dark ? 'dark' : 'light');
-  }
-  setTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-  themeBtn.addEventListener('click', ()=> setTheme(document.body.classList.contains('dark') ? 'light' : 'dark'));
 
   // ===== Visor embebido =====
   const viewer = document.getElementById('viewer');
@@ -235,10 +233,11 @@
     frame.src = url;
     openNew.href = url;
     viewerTitle.textContent =
-      key === 'avance'         ? 'Avance (Planificado vs Elaborado)'
-    : key === 'predios'        ? 'Predios — Edición & Filtros'
-    : key === 'predios_avance' ? 'Predios — Avance (códigos + avance)'
-                               : 'Resumen';
+      key === 'avance'              ? 'Avance (Planificado vs Elaborado)'
+    : key === 'predios'             ? 'Predios — Edición & Filtros'
+    : key === 'predios_avance'      ? 'Predios — Avance (códigos + avance)'
+    : key === 'predios_verificador' ? 'Predios — Verificador'
+                                    : 'Resumen';
     viewer.style.display = 'block';
     frame.focus();
   }
