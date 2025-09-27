@@ -6,73 +6,7 @@
 <title>Panel — Predios</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#f7f8fb; --card:#ffffff; --text:#0f172a; --muted:#64748b; --ring:#e2e8f0; --brand:#0ea5e9;
-    --chip:#eef7ff; --chip-border:#bfdbfe; --ok:#10b981; --bad:#ef4444;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    background:var(--bg); color:var(--text);
-  }
-  header{
-    position:sticky; top:0; z-index:20;
-    backdrop-filter:saturate(180%) blur(6px);
-    background:color-mix(in oklab, var(--bg) 86%, transparent);
-    border-bottom:1px solid var(--ring);
-  }
-  .wrap{max-width:1150px; margin:0 auto; padding:18px 18px;}
-  .row{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
-  .spacer{flex:1}
-  h1{font-size:22px; margin:0; letter-spacing:.2px}
-  .brand{display:flex; align-items:center; gap:10px; font-weight:800}
-  .brand .logo{width:30px; height:30px; display:grid; place-items:center; border-radius:10px; background:linear-gradient(135deg, var(--brand), #22d3ee);}
-  .brand .logo svg{fill:white}
-  .btn{
-    display:inline-flex; align-items:center; gap:8px;
-    padding:10px 14px; border-radius:10px; border:1px solid var(--ring);
-    background:var(--card); color:var(--text); cursor:pointer; text-decoration:none; font-weight:600;
-  }
-  .btn.primary{background:var(--brand); border-color:transparent; color:white}
-  .btn:focus{outline:none; box-shadow:0 0 0 3px color-mix(in oklab, var(--brand) 35%, transparent)}
-
-  /* grid de tarjetas */
-  .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:16px}
-  .col-4{grid-column:span 12}
-  @media (min-width:720px){ .col-4{grid-column:span 4} }
-  .card{
-    background:var(--card); border:1px solid var(--ring); border-radius:16px; padding:16px;
-    box-shadow:0 8px 30px color-mix(in oklab, var(--ring) 35%, transparent);
-    display:flex; flex-direction:column; gap:12px;
-  }
-  .card h3{margin:0; font-size:16px}
-  .card p{margin:0; font-size:13px; color:var(--muted)}
-  .icon{
-    width:40px; height:40px; border-radius:12px;
-    display:grid; place-items:center; color:white;
-    background:linear-gradient(135deg, var(--brand), #22d3ee);
-  }
-  .actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:4px}
-
-  /* visor embebido */
-  .viewer{
-    margin-top:18px; background:var(--card); border:1px solid var(--ring);
-    border-radius:16px; overflow:hidden;
-  }
-  .viewer-header{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-bottom:1px solid var(--ring)}
-  .viewer-title{font-weight:700}
-  iframe{width:100%; height:72vh; border:0; background:var(--bg)}
-
-  /* estado */
-  .status{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-  .badge{padding:4px 8px; border-radius:999px; border:1px solid var(--ring); font-size:12px; color:var(--muted); background:color-mix(in oklab, var(--card) 75%, transparent)}
-  .pill{padding:4px 10px; border-radius:999px; font-size:12px; border:1px solid var(--chip-border); background:var(--chip)}
-  .ok{color:var(--ok)} .bad{color:var(--bad)}
-  .muted{color:var(--muted)}
-  footer{padding:22px 0; color:var(--muted)}
-</style>
+<link rel="stylesheet" href="assets/css/index.css">
 </head>
 <body>
 <header>
@@ -128,7 +62,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>
         </div>
         <div>
-          <h3>Predios — Edición & Filtros</h3>
+          <h3>Predios — Edición &amp; Filtros</h3>
           <p>Tabla editable (código MTC y fechas) con filtros externos y paginación.</p>
         </div>
       </div>
@@ -156,7 +90,6 @@
       </div>
     </article>
 
-    <!-- NUEVA TARJETA: Predios — Responsable -->
     <article class="card col-4">
       <div class="row">
         <div class="icon" style="background:linear-gradient(135deg,#8b5cf6,#22c55e)">
@@ -211,73 +144,6 @@
 
 <!-- Supabase -->
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script>
-  // ===== Rutas embebidas =====
-  const PAGES = {
-    avance:               'index_avance2.html',
-    predios:              'index_predios2.html',
-    predios_avance:       'index_predios_avance.html',
-    predios_verificador:  'index_predios_verificador.html', // <— AGREGADO
-    resumen:              'index_resumen.html'
-  };
-
-  // ===== Visor embebido =====
-  const viewer = document.getElementById('viewer');
-  const frame  = document.getElementById('frame');
-  const openNew = document.getElementById('openNew');
-  const viewerTitle = document.getElementById('viewerTitle');
-
-  function loadHere(key){
-    const url = PAGES[key];
-    if(!url){ alert('Ruta no encontrada. Ajusta PAGES.'); return; }
-    frame.src = url;
-    openNew.href = url;
-    viewerTitle.textContent =
-      key === 'avance'              ? 'Avance (Planificado vs Elaborado)'
-    : key === 'predios'             ? 'Predios — Edición & Filtros'
-    : key === 'predios_avance'      ? 'Predios — Avance (códigos + avance)'
-    : key === 'predios_verificador' ? 'Predios — Verificador'
-                                    : 'Resumen';
-    viewer.style.display = 'block';
-    frame.focus();
-  }
-  function closeViewer(){
-    frame.src = 'about:blank';
-    viewer.style.display = 'none';
-  }
-
-  // ===== Estado rápido con Supabase (opcional) =====
-  const SUPABASE_URL = "https://wbzxbfqowlfmmkwqeyam.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndienhiZnFvd2xmbW1rd3FleWFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5ODUwMDQsImV4cCI6MjA3MjU2MTAwNH0.mJJ7yID73tUerWE_aiNw3ZE4o-Q9YrT39YN-iS2CksA";
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  const statusConn  = document.getElementById('statusConn');
-  const countPredios = document.getElementById('countPredios');
-  const lastDate = document.getElementById('lastDate');
-
-  (async function quickStatus(){
-    try{
-      // 1) Conteo
-      const { count, error: e1 } = await sb.from('predios').select('id', { count:'exact', head:true });
-      if(e1) throw e1;
-      countPredios.textContent = `Predios: ${count ?? '—'}`;
-
-      // 2) Última fecha de elaboración
-      const { data: last, error: e2 } = await sb.from('predios')
-        .select('fecha_elaboracion').order('fecha_elaboracion', {ascending:false}).limit(1);
-      if(e2) throw e2;
-      const d = (last && last[0] && last[0].fecha_elaboracion) ? String(last[0].fecha_elaboracion).slice(0,10) : '—';
-      lastDate.textContent = `Último elaborado: ${d}`;
-
-      statusConn.textContent = 'Conexión: OK';
-      statusConn.style.borderColor = 'transparent';
-      statusConn.classList.add('ok');
-    }catch(err){
-      statusConn.textContent = 'Conexión: ERROR';
-      statusConn.classList.add('bad');
-      console.error(err);
-    }
-  })();
-</script>
+<script src="assets/js/index.js"></script>
 </body>
 </html>
