@@ -2,46 +2,54 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Panel interactivo para explorar y editar predios con filtros avanzados y opciones de exportación." />
   <title>Predios — Filtros + Edición + Exportar</title>
 
   <!-- DataTables -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.min.css">
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.datatables.net/2.0.3/js/dataTables.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.min.css" />
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" defer></script>
+  <script src="https://cdn.datatables.net/2.0.3/js/dataTables.min.js" defer></script>
 
   <!-- Supabase -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
 
   <!-- SheetJS para exportar -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 
-  <link rel="stylesheet" href="assets/index_predios2/index.css">
-
+  <link rel="stylesheet" href="assets/index_predios2/index.css" />
 </head>
 <body>
+  <noscript>
+    <div class="card" role="alert">
+      Para utilizar esta página es necesario habilitar JavaScript.
+    </div>
+  </noscript>
+
   <header class="appbar">
     <h1>Predios — Filtros + Edición + Exportar</h1>
-    <div class="toolbar">
-      <label>Comunidad:
+    <div class="toolbar" role="group" aria-label="Filtros de búsqueda de predios">
+      <label for="f_comunidad">Comunidad:
         <select id="f_comunidad"><option value="">(Todos)</option></select>
       </label>
-      <label>Entregable:
+      <label for="f_entregable">Entregable:
         <select id="f_entregable"><option value="">(Todos)</option></select>
       </label>
-      <label>Responsable técnico:
+      <label for="f_responsable">Responsable técnico:
         <select id="f_responsable"><option value="">(Todos)</option></select>
       </label>
-      <label>Fecha elab.:
+      <label for="f_fecha">Fecha elab.:
         <select id="f_fecha"><option value="">(Todos)</option></select>
       </label>
-      <button id="btnClear">Limpiar filtros</button>
-      <button id="btnExport">Exportar</button>
+      <button id="btnClear" type="button">Limpiar filtros</button>
+      <button id="btnExport" type="button" aria-haspopup="dialog" aria-controls="exportBackdrop">Exportar</button>
     </div>
   </header>
 
   <main>
     <div class="card">
-      <table id="tabla" class="display">
+      <table id="tabla" class="display" aria-describedby="tablaHelp">
+        <caption id="tablaHelp">Listado interactivo de predios disponibles.</caption>
         <thead>
           <tr id="thead-titles"></tr>
         </thead>
@@ -52,13 +60,13 @@
 
   <!-- Modal Detalle -->
   <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
       <header>
         <div>
           <div id="modalTitle" style="font-weight:800;">Detalle del predio</div>
           <div id="modalSubtitle" class="tag"></div>
         </div>
-        <button class="btn ghost" id="btnCloseModal" title="Cerrar">✕</button>
+        <button class="btn ghost" id="btnCloseModal" type="button" title="Cerrar" aria-label="Cerrar ventana de detalle">✕</button>
       </header>
       <div class="modal-body">
         <div style="margin-bottom:10px;">
@@ -68,20 +76,20 @@
         <div class="kv-grid" id="kvGrid"></div>
       </div>
       <div class="modal-footer">
-        <span id="saveHint" class="tag" style="margin-right:auto;"></span>
-        <button class="btn secondary" id="btnEdit">Editar</button>
-        <button class="btn secondary" id="btnCancel">Cancelar</button>
-        <button class="btn ok" id="btnSave" disabled>Guardar cambios</button>
+        <span id="saveHint" class="tag" style="margin-right:auto;" role="status" aria-live="polite"></span>
+        <button class="btn secondary" id="btnEdit" type="button">Editar</button>
+        <button class="btn secondary" id="btnCancel" type="button">Cancelar</button>
+        <button class="btn ok" id="btnSave" type="button" disabled>Guardar cambios</button>
       </div>
     </div>
   </div>
 
   <!-- Modal Exportar -->
   <div class="modal-backdrop" id="exportBackdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="exportTitle" tabindex="-1">
       <header>
         <div id="exportTitle" style="font-weight:800;">Exportar datos</div>
-        <button class="btn ghost" id="btnCloseExport" title="Cerrar">✕</button>
+        <button class="btn ghost" id="btnCloseExport" type="button" title="Cerrar" aria-label="Cerrar ventana de exportación">✕</button>
       </header>
       <div class="modal-body">
         <div class="form-row">
@@ -109,14 +117,12 @@
       </div>
       <div class="modal-footer">
         <span class="tag" style="margin-right:auto;">Se exporta desde <b>todos</b> los registros, no solo la vista.</span>
-        <button class="btn secondary" id="btnExportCSV">CSV</button>
-        <button class="btn ok" id="btnExportXLSX">Excel (.xlsx)</button>
+        <button class="btn secondary" id="btnExportCSV" type="button">CSV</button>
+        <button class="btn ok" id="btnExportXLSX" type="button">Excel (.xlsx)</button>
       </div>
     </div>
   </div>
 
-<script src="assets/index_predios2/index.js"></script>
-
+  <script src="assets/index_predios2/index.js" defer></script>
 </body>
 </html>
-
